@@ -27,13 +27,22 @@ public class MusicianInfoService {
         try {
             JsonNode root = objectMapper.readTree(restTemplate.getForObject(url, String.class));
             for (JsonNode node: root.path("relations")) {
-                System.out.println(node.path("type").asText());
+
                 if (Objects.equals(node.path("type").asText(), "wikidata")){
-                    System.out.println("TRUE");
+                    String resource = node.path("url").path("resource").asText();
+                    System.out.println(resource);
+                    String wikidata = "https://www.wikidata.org/wiki/";
+                    String wikiID = resource.substring(wikidata.length());
+                    System.out.println(wikiID);
+                    JsonNode wikiNode = objectMapper.readTree(restTemplate.getForObject(
+                            "https://www.wikidata.org/w/api.php?action=wbgetentities&ids="+wikiID+"&format=json&props=sitelinks",String.class));
+
+
+                    System.out.println(wikiNode.path("entities").path(wikiID).path("sitelinks").path("enwiki").path("title").asText());
+                    System.out.println("SUCCESS");
                 }
             }
 
-            System.out.println("SUCCESS");
         } catch (JsonProcessingException e) {
             System.out.println("FAIL");
             throw new RuntimeException(e);
