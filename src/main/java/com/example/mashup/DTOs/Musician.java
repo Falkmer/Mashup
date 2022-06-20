@@ -2,7 +2,7 @@ package com.example.mashup.DTOs;
 
 import java.util.ArrayList;
 
-public class MusicianDTO {
+public class Musician {
     private String mbid;
     private String description;
     private ArrayList<Album> albums;
