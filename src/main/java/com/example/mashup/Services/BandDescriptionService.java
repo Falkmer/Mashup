@@ -2,7 +2,6 @@ package com.example.mashup.Services;
 
 import com.example.mashup.BO.Relation;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
@@ -23,20 +22,21 @@ public class BandDescriptionService {
         for (Relation relation: relations) {
             if (relation.getType().equals("wikipedia")){
                 wikipediaUrl = relation.getResource();
+
             } else if (relation.getType().equals("wikidata")){
                 if (wikipediaUrl == null){
                     String wikidata = "https://www.wikidata.org/wiki/";
                     String wikiID = relation.getResource().substring(wikidata.length());
-                    System.out.println(wikiID);
-                    try {
-                        JsonNode wikiNode = objectMapper.readTree(restTemplate.getForObject(
-                                "https://www.wikidata.org/w/api.php?action=wbgetentities&ids="+wikiID+"&format=json&props=sitelinks",String.class));
 
+                    try {
+                        String result = restTemplate.getForObject("https://www.wikidata.org/w/api.php?action=wbgetentities&ids="+wikiID+"&format=json&props=sitelinks",String.class);
+                        JsonNode wikiNode = objectMapper.readTree(result);
                         String title = wikiNode.path("entities").path(wikiID).path("sitelinks").path("enwiki").path("title").asText();
-                        System.out.println(title);
-                        wikipediaUrl = "https://en.wikipedia.org/w/api.php?action=query&format=json&prop=extracts&exintro=true&redirects=true&titles="+title;
-                    } catch (JsonProcessingException e) {
-                        System.out.println(e.getMessage());
+                        if (title != null) {
+                            wikipediaUrl = "https://en.wikipedia.org/w/api.php?action=query&format=json&prop=extracts&exintro=true&redirects=true&titles="+title;
+                        }
+
+                    } catch (Exception e) {
                         return null;
                     }
 
@@ -51,8 +51,8 @@ public class BandDescriptionService {
 
     private String getWikipediaDescription(String url){
         try {
-            JsonNode wikipediaNode = objectMapper.readTree(restTemplate.getForObject(url ,String.class));
-
+            String result = restTemplate.getForObject(url ,String.class);
+            JsonNode wikipediaNode = objectMapper.readTree(result);
             Iterator<String> i = wikipediaNode.path("query").path("pages").fieldNames();
             String pageID = null;
             while (i.hasNext()){
@@ -60,8 +60,9 @@ public class BandDescriptionService {
             }
 
             return wikipediaNode.path("query").path("pages").path(pageID).path("extract").asText();
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+
+        } catch (Exception e) {
+            return null;
         }
     }
 }

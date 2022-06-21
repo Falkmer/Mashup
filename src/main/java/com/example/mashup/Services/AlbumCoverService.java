@@ -14,15 +14,16 @@ public class AlbumCoverService {
     public ArrayList<String> getAlbumCoversByID(String albumID){
         ObjectMapper objectMapper = new ObjectMapper();
         ArrayList<String> albumImages = new ArrayList<>();
-        try{
-            JsonNode imageNode = objectMapper.readTree(restTemplate.getForObject(
-                    "http://coverartarchive.org/release-group/"+ albumID,String.class));
+
+        String result = null;
+        try {
+            result = restTemplate.getForObject("http://coverartarchive.org/release-group/"+ albumID,String.class);
+            JsonNode imageNode = objectMapper.readTree(result);
             for (JsonNode node: imageNode.path("images")){
-                System.out.println(node.path("image").asText());
                 albumImages.add(node.path("image").asText());
             }
-        }catch (Exception e){
-            System.out.println(e.getMessage());
+        } catch (Exception e) {
+            albumImages.add("No image available :(");
         }
 
         return albumImages;

@@ -10,6 +10,7 @@ import com.example.mashup.Services.BandInfoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -24,38 +25,44 @@ public class BandHandler {
     @Autowired
     private BandDescriptionService bandDescriptionService;
 
-    public Band getBandDiscography(String mbid){
+    public Band getBandOverview(String mbid) {
         Band band = new Band();
-        BandInfo bandInfo = bandInfoService.getBandInfoByMBID(mbid);
+
+        Optional<BandInfo> o = bandInfoService.getBandInfoByMBID(mbid);
+        if(o.isEmpty()){
+            return null;
+        }
+
+        BandInfo bandInfo = o.get();
         band.setMbid(bandInfo.getMbid());
 
-        try {
-            final ExecutorService executorService = newFixedThreadPool(20);
+        final ExecutorService executorService = newFixedThreadPool(20);
 
+        executorService.execute(() -> {
+            band.setDescription(bandDescriptionService.getBandDescription(bandInfo.getRelations()));
+
+        });
+
+        for (ReleaseGroup releaseGroup: bandInfo.getReleaseGroups()) {
             executorService.execute(() -> {
-                band.setDescription(bandDescriptionService.getBandDescription(bandInfo.getRelations()));
+                Album album = new Album();
+                album.setId(releaseGroup.getId());
+                album.setTitle(releaseGroup.getTitle());
+                album.setImages(albumCoverService.getAlbumCoversByID(releaseGroup.getId()));
 
+                band.addAlbum(album);
             });
-
-
-            for (ReleaseGroup releaseGroup: bandInfo.getReleaseGroups()) {
-                executorService.execute(() -> {
-                    Album album = new Album();
-                    album.setId(releaseGroup.getId());
-                    album.setTitle(releaseGroup.getTitle());
-
-                    album.setImages(albumCoverService.getAlbumCoversByID(releaseGroup.getId()));
-
-                    band.addAlbum(album);
-                });
-
-            }
-            executorService.shutdown();
-            executorService.awaitTermination(1000, TimeUnit.SECONDS);
-        } catch (InterruptedException interruptedException) {
-            System.out.println(interruptedException.getMessage());
         }
-        System.out.println(band);
+
+        executorService.shutdown();
+
+        try {
+            if (executorService.awaitTermination(30, TimeUnit.SECONDS)){
+                executorService.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            executorService.shutdownNow();
+        }
 
         return band;
     }
