@@ -2,10 +2,14 @@ package com.example.mashup.DTOs;
 
 import java.util.ArrayList;
 
-public class Musician {
+public class Band {
     private String mbid;
     private String description;
     private ArrayList<Album> albums;
+
+    public Band() {
+        this.albums = new ArrayList<>();
+    }
 
     public String getMbid() {
         return mbid;
@@ -29,5 +33,18 @@ public class Musician {
 
     public void setAlbums(ArrayList<Album> albums) {
         this.albums = albums;
+    }
+
+    public void addAlbum(Album album){
+        this.albums.add(album);
+    }
+
+    @Override
+    public String toString() {
+        return "Band{" +
+                "mbid='" + mbid + '\'' +
+                ", description='" + description + '\'' +
+                ", albums=" + albums +
+                '}';
     }
 }

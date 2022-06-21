@@ -30,4 +30,17 @@ public class Album {
     public void setImages(ArrayList<String> images) {
         this.images = images;
     }
+
+    public void addImage(String image){
+        this.images.add(image);
+    }
+
+    @Override
+    public String toString() {
+        return "Album{" +
+                "title='" + title + '\'' +
+                ", id='" + id + '\'' +
+                ", images=" + images +
+                '}';
+    }
 }
