@@ -5,6 +5,7 @@ import com.example.mashup.BO.ReleaseGroup;
 import com.example.mashup.DTOs.Album;
 import com.example.mashup.DTOs.Band;
 import com.example.mashup.Services.AlbumCoverService;
+import com.example.mashup.Services.BandDescriptionService;
 import com.example.mashup.Services.BandInfoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -20,14 +21,21 @@ public class BandHandler {
     private BandInfoService bandInfoService;
     @Autowired
     private AlbumCoverService albumCoverService;
+    @Autowired
+    private BandDescriptionService bandDescriptionService;
 
     public Band getBandDiscography(String mbid){
         Band band = new Band();
         BandInfo bandInfo = bandInfoService.getBandInfoByMBID(mbid);
+        band.setMbid(bandInfo.getMbid());
 
         try {
-            final ExecutorService executorService = newFixedThreadPool(10);
+            final ExecutorService executorService = newFixedThreadPool(20);
 
+            executorService.execute(() -> {
+                band.setDescription(bandDescriptionService.getBandDescription(bandInfo.getRelations()));
+
+            });
 
 
             for (ReleaseGroup releaseGroup: bandInfo.getReleaseGroups()) {
@@ -47,6 +55,7 @@ public class BandHandler {
         } catch (InterruptedException interruptedException) {
             System.out.println(interruptedException.getMessage());
         }
+        System.out.println(band);
 
         return band;
     }

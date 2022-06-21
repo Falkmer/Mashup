@@ -9,7 +9,7 @@ import java.util.ArrayList;
 
 @Service
 public class AlbumCoverService {
-    private RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate = new RestTemplate();
 
     public ArrayList<String> getAlbumCoversByID(String albumID){
         ObjectMapper objectMapper = new ObjectMapper();

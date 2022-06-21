@@ -7,6 +7,12 @@ public class BandInfo {
     private ArrayList<ReleaseGroup> releaseGroups;
     private ArrayList<Relation> relations;
 
+    public BandInfo(String mbid) {
+        this.mbid = mbid;
+        this.releaseGroups = new ArrayList<>();
+        this.relations = new ArrayList<>();
+    }
+
     public String getMbid() {
         return mbid;
     }

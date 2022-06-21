@@ -7,6 +7,10 @@ public class Band {
     private String description;
     private ArrayList<Album> albums;
 
+    public Band() {
+        this.albums = new ArrayList<>();
+    }
+
     public String getMbid() {
         return mbid;
     }
